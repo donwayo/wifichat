@@ -1,4 +1,4 @@
-wifichat
+WifiChat
 ========
 
 # Description
