@@ -29,7 +29,9 @@
             </intent-filter>
         </activity>
         <activity android:name="com.wifichat.screens.ChatScreen" >
-            
+            <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="com.wifichat.MainActivity" />
         </activity>
     </application>
 

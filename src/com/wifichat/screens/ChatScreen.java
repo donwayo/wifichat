@@ -18,7 +18,9 @@ import com.wifichat.utils.Utils;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -37,46 +39,43 @@ public class ChatScreen extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_chat_screen);
 		
+		// get passed data
 		Intent intent = getIntent();
-		final String address = intent.getStringExtra(PeopleAdapter.ADDRESS);
-		final int port = intent.getIntExtra(PeopleAdapter.PORT, 0);
+		String name = intent.getStringExtra(PeopleAdapter.NAME);
+		String address = intent.getStringExtra(PeopleAdapter.ADDRESS);
+		int port = intent.getIntExtra(PeopleAdapter.PORT, 0);
 		
-		mConnection = new ChatConnection(this);
+		// init navigation bar
+		getActionBar().setDisplayHomeAsUpEnabled(true);
+		this.setTitle(name);
 		
+		// init chat view
 		List<ChatMessage> messageList = new ArrayList<ChatMessage>();
 		ListView messageListView = (ListView) findViewById(R.id.messageList);
 		mMessageAdapter = new MessageAdapter(this, messageList);
 		messageListView.setAdapter(mMessageAdapter);
 		
-		/*try {
-			mConnection.connectToServer(InetAddress.getByName(address), port);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}*/
-		
+		// init send button's action
 		mNewMessageView = (EditText) findViewById(R.id.newMessage);
 		Button sendBtn = (Button) findViewById(R.id.sendBtn);
 		sendBtn.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				String msg = mNewMessageView.getText().toString();
+				String msg = mNewMessageView.getText().toString().trim();
 				if (!Utils.isEmty(msg)) {
 					sendMessage(msg);
 				}
+				mNewMessageView.setText("");
 			}
 		});
-		
-		Button connectBtn = (Button) findViewById(R.id.connectBtn);
-		connectBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View arg0) {
-				try {
-					mConnection.connectToServer(InetAddress.getByName(address), port);
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-				}
-			}
-		});
+
+		// init chat connection
+		mConnection = new ChatConnection(this);
+		try {
+			mConnection.connectToServer(InetAddress.getByName(address), port);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -107,6 +106,17 @@ public class ChatScreen extends Activity {
 			mConnection.tearDown();
 		}
 		super.onDestroy();
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+	    switch (item.getItemId()) {
+	    // Respond to the action bar's Up/Home button
+	    case android.R.id.home:
+	        NavUtils.navigateUpFromSameTask(this);
+	        return true;
+	    }
+	    return super.onOptionsItemSelected(item);
 	}
 
 	@Override

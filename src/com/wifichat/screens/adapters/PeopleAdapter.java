@@ -3,6 +3,7 @@ package com.wifichat.screens.adapters;
 import java.util.List;
 
 import com.wifichat.R;
+import com.wifichat.connection.NsdHelper;
 import com.wifichat.data.ChatMessage;
 import com.wifichat.data.User;
 import com.wifichat.screens.ChatScreen;
@@ -49,13 +50,15 @@ public class PeopleAdapter extends ArrayAdapter<NsdServiceInfo>{
 		final int fPosition = position;
 		
 		TextView nameView = (TextView) convertView.findViewById(R.id.personName);
-		nameView.setText(this.getItem(position).getServiceName());
+		nameView.setText(this.getItem(position).getServiceName()
+								.substring(NsdHelper.SERVICE_PREFIX.length()));
 		
 		convertView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				Intent intent = new Intent(mContext, ChatScreen.class);
-				intent.putExtra(NAME, getItem(fPosition).getServiceName());
+				intent.putExtra(NAME, getItem(fPosition).getServiceName()
+								.substring(NsdHelper.SERVICE_PREFIX.length()));
 				intent.putExtra(ADDRESS, getItem(fPosition).getHost().getHostAddress());
 				intent.putExtra(PORT, getItem(fPosition).getPort());
 				mContext.startActivity(intent);

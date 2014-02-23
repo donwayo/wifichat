@@ -43,12 +43,4 @@
             android:padding="5dp"
             android:text="@string/sendBtn" />
     </LinearLayout>
-
-    <Button
-        android:id="@+id/connectBtn"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:padding="5dp"
-        android:text="Connect" />
-
 </LinearLayout>

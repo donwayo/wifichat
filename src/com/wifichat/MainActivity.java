@@ -1,6 +1,5 @@
 package com.wifichat;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,28 +7,23 @@ import com.wifichat.connection.Callback;
 import com.wifichat.connection.ChatConnection;
 import com.wifichat.connection.NsdHelper;
 import com.wifichat.data.User;
-import com.wifichat.screens.ChatScreen;
 import com.wifichat.screens.adapters.PeopleAdapter;
 import com.wifichat.utils.Utils;
 
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
 
 public class MainActivity extends Activity {
-	public static final int REMOVE_TYPE = 1;
-	public static final int ADD_TYPE = 2;
-	public static final String UPDATE_TYPE = "updateType";
+	public static final String PREFS_NAME = "Preferences";
+	public static final String PREFS_USER_NAME = "username";
 	
 	private static final String TAG = "MainActivity";
 	private MainActivity mActivity;
@@ -43,13 +37,16 @@ public class MainActivity extends Activity {
 		
 		mActivity = this;
 		
-		// create a new user with the given username
-		//new User("Thanh");
-		
-		// ask for username
-		askUsername();
-		
-		// initialize();
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+		String username = settings.getString(PREFS_USER_NAME, null);
+		// ask for username if not available
+		if (username == null) {
+			askUsername();
+		// otherwise, initialize everything
+		} else {
+			new User(username);
+			initialize();
+		}
 	}
 
 	/**
@@ -57,7 +54,6 @@ public class MainActivity extends Activity {
 	 */
 	private void askUsername() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
 		alert.setTitle(getString(R.string.usernamePromptTitle));
 
 		// Set an EditText view to get user input
@@ -68,16 +64,23 @@ public class MainActivity extends Activity {
 		alert.setPositiveButton(R.string.usernamePromptBtn,
 			new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
-					String value = input.getText().toString();
+					String username = input.getText().toString();
 					
 					// ask again if the username is emty
-					if (Utils.isEmty(value)) {
+					if (Utils.isEmty(username)) {
 						askUsername();
 						return;
 					}
 					
 					// create a new user with the given username
-					new User(value);
+					new User(username);
+					
+					// save username
+					SharedPreferences settings = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+				    SharedPreferences.Editor editor = settings.edit();
+				    editor.putString(PREFS_USER_NAME, username);
+			        editor.commit();
+			        
 					// initialize everything
 					initialize();
 				}

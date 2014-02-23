@@ -152,11 +152,10 @@ public class ChatConnection {
                         setSocket(mServerSocket.accept());
                         //setSocket(new Socket("10.0.3.15", 8080));
                         Log.d(TAG, "Connected.");
-                        if (mChatClient == null) {
-                            int port = mSocket.getPort();
-                            InetAddress address = mSocket.getInetAddress();
-                            connectToServer(address, port);
-                        }
+
+                        int port = mSocket.getPort();
+                        InetAddress address = mSocket.getInetAddress();
+                        connectToServer(address, port);
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error creating ServerSocket: ", e);
@@ -177,15 +176,14 @@ public class ChatConnection {
         private Thread mRecThread;
 
         public ChatClient(InetAddress address, int port) {
-
             Log.d(CLIENT_TAG, "Creating chatClient");
             this.mAddress = address;
             this.PORT = port;
-
+            
             mSendThread = new Thread(new SendingThread());
             mSendThread.start();
         }
-
+        
         class SendingThread implements Runnable {
 
             BlockingQueue<String> mMessageQueue;
@@ -214,26 +212,33 @@ public class ChatConnection {
                     Log.d(CLIENT_TAG, "Initializing socket failed, IOE.", e);
                 }
 
-                while (true) {
+                /*while (true) {
                     try {
                         String msg = mMessageQueue.take();
                         sendMessage(msg);
                     } catch (InterruptedException ie) {
                         Log.d(CLIENT_TAG, "Message sending loop interrupted, exiting");
                     }
-                }
+                }*/
             }
         }
+
 
         class ReceivingThread implements Runnable {
 
         	@Override
             public void run() {
-                BufferedReader input;
+                BufferedReader input = null;
                 try {
-                    input = new BufferedReader(new InputStreamReader(
-                            mSocket.getInputStream()));
+                    
                     while (!Thread.currentThread().isInterrupted()) {
+                    	if (input == null && mSocket != null) {
+                    		input = new BufferedReader(new InputStreamReader(
+                                    mSocket.getInputStream()));
+                    	}
+                    	if (input == null) {
+                    		continue;
+                    	}
                         String messageStr = null;
                         messageStr = input.readLine();
                         if (messageStr == null) {
@@ -253,7 +258,9 @@ public class ChatConnection {
 
         public void tearDown() {
             try {
-                getSocket().close();
+            	if (mSocket != null) {
+            		mSocket.close();
+            	}
             } catch (IOException ioe) {
                 Log.e(CLIENT_TAG, "Error when closing server socket.");
             }
@@ -264,8 +271,10 @@ public class ChatConnection {
                 Socket socket = getSocket();
                 if (socket == null) {
                     Log.d(CLIENT_TAG, "Socket is null, wtf?");
+                    return;
                 } else if (socket.getOutputStream() == null) {
                     Log.d(CLIENT_TAG, "Socket output stream is null, wtf?");
+                    return;
                 }
 
                 PrintWriter out = new PrintWriter(
