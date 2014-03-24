@@ -6,18 +6,18 @@
     android:background="@color/white"
     tools:context=".MainActivity" >
 
-	<ScrollView
+	<Button 
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Refresh" 
+	    android:id="@+id/refreshbutton"
+	    />
+	
+    <ListView
+        android:id="@+id/peopleList"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" 
-        android:layout_margin="5dp">
-
-        <com.wifichat.utils.ExpandableHeightListView
-            android:id="@+id/peopleList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:dividerHeight="1px"
-            android:divider="@color/lightgray" />
-    </ScrollView>
+        android:layout_height="wrap_content"
+        android:dividerHeight="1px"
+        android:divider="@color/lightgray" />
     
 </LinearLayout>
