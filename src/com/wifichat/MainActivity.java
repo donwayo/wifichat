@@ -18,6 +18,9 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -107,6 +110,16 @@ public class MainActivity extends Activity {
         
         advertiseService();
         mNsdHelper.discoverServices();
+        
+        Button refreshButton = (Button)findViewById(R.id.refreshbutton);
+        refreshButton.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				mNsdHelper.discoverServices();
+			}
+		});
         /*Intent intent = new Intent(mActivity, ChatScreen.class);
 		startActivity(intent);*/
         

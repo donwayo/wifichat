@@ -32,6 +32,10 @@ import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+
 import com.wifichat.data.ChatMessage;
 import com.wifichat.data.User;
 import com.wifichat.screens.ChatScreen;
@@ -197,7 +201,10 @@ public class ChatConnection {
             public void run() {
                 try {
                     if (getSocket() == null) {
-                        setSocket(new Socket(mAddress, PORT));
+                    	SocketFactory sf = SSLSocketFactory.getDefault();
+                    	SSLSocket socket = (SSLSocket) sf.createSocket(mAddress, PORT);
+                    	
+                        setSocket(socket);
                         Log.d(CLIENT_TAG, "Client-side socket initialized.");
                     } else {
                         Log.d(CLIENT_TAG, "Socket already initialized. skipping!");
