@@ -8,5 +8,7 @@
     <string name="usernamePromptBtn">OK</string>
     
     <string name="sendBtn">Send</string>
+    <string name="refreshBtn">Refresh</string>
+    <string name="noContactText">No available contacts in your network.</string>
 
 </resources>

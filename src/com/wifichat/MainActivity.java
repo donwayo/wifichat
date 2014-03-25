@@ -23,6 +23,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	public static final String PREFS_NAME = "Preferences";
@@ -31,6 +32,8 @@ public class MainActivity extends Activity {
 	private static final String TAG = "MainActivity";
 	private MainActivity mActivity;
 	private PeopleAdapter mPeopleAdapter;
+	private ListView mPeopleListView;
+	private TextView mNoContactText;
 	private NsdHelper mNsdHelper;
 
 	@Override
@@ -93,11 +96,14 @@ public class MainActivity extends Activity {
 	}
 	
 	private void initialize() {
+		// no one available text
+		mNoContactText = (TextView) findViewById(R.id.noContactText);
+		
 		// init people list view
-		ListView peopleListView = (ListView) findViewById(R.id.peopleList);
+		mPeopleListView = (ListView) findViewById(R.id.peopleList);
 		List<NsdServiceInfo> peopleList = new ArrayList<NsdServiceInfo>();
 		mPeopleAdapter = new PeopleAdapter(this, peopleList);
-		peopleListView.setAdapter(mPeopleAdapter);
+		mPeopleListView.setAdapter(mPeopleAdapter);
 		
 		// init nsd helper
 		mNsdHelper = new NsdHelper(mActivity, User.sharedInstance.username,
@@ -111,25 +117,14 @@ public class MainActivity extends Activity {
         advertiseService();
         mNsdHelper.discoverServices();
         
+        // init refresh button
         Button refreshButton = (Button)findViewById(R.id.refreshbutton);
         refreshButton.setOnClickListener(new OnClickListener() {
-			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				mNsdHelper.discoverServices();
 			}
 		});
-        /*Intent intent = new Intent(mActivity, ChatScreen.class);
-		startActivity(intent);*/
-        
-        /*ListView peopleListView = (ListView) findViewById(R.id.peopleList);
-		List<Person> peopleList = new ArrayList<Person>();
-		peopleList.add(new Person("Thanh", "192.168.56.101"));
-		peopleList.add(new Person("Test", "192.168.56.102"));
-		
-		mPeopleAdapter = new PeopleAdapter(this, peopleList);
-		peopleListView.setAdapter(mPeopleAdapter);*/
 	}
 	
 	private void updatePeopleList() {
@@ -141,6 +136,15 @@ public class MainActivity extends Activity {
 				if (serviceList == null) {
 					serviceList = new ArrayList<NsdServiceInfo>();
 				}
+				
+				if (serviceList.size() == 0) {
+					mNoContactText.setVisibility(View.VISIBLE);
+					mPeopleListView.setVisibility(View.GONE);
+				} else {
+					mNoContactText.setVisibility(View.GONE);
+					mPeopleListView.setVisibility(View.VISIBLE);
+				}
+				
 				mPeopleAdapter.clear();
 				mPeopleAdapter.addAll(serviceList);
 				mPeopleAdapter.notifyDataSetChanged();
@@ -152,13 +156,6 @@ public class MainActivity extends Activity {
 	 * Register service
 	 */
 	public void advertiseService() {
-        
-        /*if(mConnection.getLocalPort() > -1) {
-            mNsdHelper.registerService(mConnection.getLocalPort());
-        } else {
-            Log.d(TAG, "ServerSocket isn't bound.");
-        }*/
-        
         mNsdHelper.registerService(ChatConnection.PORT);
     }
 	
