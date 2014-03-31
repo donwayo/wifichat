@@ -37,6 +37,7 @@ import java.util.concurrent.BlockingQueue;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
@@ -46,8 +47,6 @@ import com.wifichat.R;
 import com.wifichat.data.ChatMessage;
 import com.wifichat.data.User;
 import com.wifichat.screens.ChatScreen;
-import com.wifichat.utils.SSLUtils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -58,7 +57,7 @@ public class ChatConnection {
     private ChatClient mChatClient;
 
     private static final String TAG = "ChatConnection";
-    public static final int PORT = 41190;
+    public static final int PORT = 44300;
 
     private Socket mSocket;
     private int mPort = -1;
@@ -155,6 +154,13 @@ public class ChatConnection {
             @Override
             public void run() {
                 try {
+                	  String trustStoreType = KeyStore.getDefaultType();
+	               	  KeyStore trustStore = KeyStore.getInstance(trustStoreType);
+	               	  TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+	               	  InputStream trustStoreStream = mUpdateHandler.getResources().openRawResource(R.raw.truststore);
+	               	  trustStore.load(trustStoreStream, "123456".toCharArray());
+	               	  tmf.init(trustStore);
+                	 	  
 					  String keyStoreType = KeyStore.getDefaultType();
 					  KeyStore keyStore = KeyStore.getInstance(keyStoreType);
 					  InputStream keyStoreStream = mUpdateHandler.getResources().openRawResource(R.raw.server);
@@ -166,18 +172,24 @@ public class ChatConnection {
 					  kmf.init(keyStore, "123456".toCharArray());
 					
 					  SSLContext context = SSLContext.getInstance("TLS");
-					  context.init(kmf.getKeyManagers(), null, null);          
+					  context.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);          
 					  mServerSocket = (SSLServerSocket) context.getServerSocketFactory().createServerSocket(PORT);
+					  //mServerSocket.setNeedClientAuth(true);
+					  mServerSocket.setWantClientAuth(true);
 					  mServerSocket.setEnabledCipherSuites(mServerSocket.getSupportedCipherSuites());
 
                     //mServerSocket = new ServerSocket(PORT);
                     setLocalPort(mServerSocket.getLocalPort());
                     
+                    Log.d(TAG, "KeyManagerFactory " + kmf.getKeyManagers().length);
+                    Log.d(TAG, "TrustManagerFactory " + tmf.getTrustManagers().length);
+
+                    
                     while (!Thread.currentThread().isInterrupted()) {
                         Log.d(TAG, "ServerSocket Created, awaiting connection");
                         setSocket(mServerSocket.accept());
                         Log.d(TAG, "Connected.");
-
+                        
                         int port = mSocket.getPort();
                         InetAddress address = mSocket.getInetAddress();
                         connectToServer(address, port);
@@ -222,13 +234,36 @@ public class ChatConnection {
             public void run() {
                 try {
                     if (getSocket() == null) {
-                    	SocketFactory sf = SSLSocketFactory.getDefault();
+                    	String trustStoreType = KeyStore.getDefaultType();
+						KeyStore trustStore = KeyStore.getInstance(trustStoreType);
+						TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+						InputStream trustStoreStream = mUpdateHandler.getResources().openRawResource(R.raw.truststore);
+						trustStore.load(trustStoreStream, "123456".toCharArray());
+						tmf.init(trustStore);
+						 	  
+						String keyStoreType = KeyStore.getDefaultType();
+						KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+						InputStream keyStoreStream = mUpdateHandler.getResources().openRawResource(R.raw.server);
+						keyStore.load(keyStoreStream, "123456".toCharArray());
+						                  
+						String keyalg = KeyManagerFactory.getDefaultAlgorithm();
+						KeyManagerFactory kmf = KeyManagerFactory.getInstance(keyalg);
+						kmf.init(keyStore, "123456".toCharArray());
+						
+						SSLContext sslContext = SSLContext.getInstance("TLS");
+						sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+						
+                    	SocketFactory sf = sslContext.getSocketFactory();
                     	SSLSocket socket = (SSLSocket) sf.createSocket(mAddress, PORT);
   					  	socket.setEnabledCipherSuites(socket.getSupportedCipherSuites());
-                    	
+  					  
+  					  	
                     	//setSocket(new Socket(mAddress, PORT));
                         setSocket(socket);
                         Log.d(CLIENT_TAG, "Client-side socket initialized.");
+                        Log.d(CLIENT_TAG, "KeyManagerFactory " + kmf.getKeyManagers().length);
+                        Log.d(CLIENT_TAG, "TrustManagerFactory " + tmf.getTrustManagers().length);
+
                     } else {
                         Log.d(CLIENT_TAG, "Socket already initialized. skipping!");
                     }
